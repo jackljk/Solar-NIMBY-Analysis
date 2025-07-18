@@ -1,26 +1,26 @@
 from typing_extensions import Literal
 import pandas as pd
-from src.county_level.bounding_box_utils import process_raw_county_bounding_box
-from src.county_level.processors.energy_processors import (
+from .bounding_box_utils import process_raw_county_bounding_box
+from .processors.energy_processors import (
     process_raw_wind_data, 
     process_raw_solar_data, 
     process_raw_solar_roof_data
 )
-from src.county_level.processors.economic_processors import (
+from .processors.economic_processors import (
     process_raw_GDP_data,
     process_raw_eia_electric_price_data,
     process_raw_NREL_electric_price_data,
     process_raw_income_data
 )
-from src.county_level.processors.demographic_processors import (
+from .processors.demographic_processors import (
     process_raw_education_data,
     process_raw_race_data,
     process_raw_unemployment_data
 )
-from src.county_level.processors.geographic_processors import (
+from .processors.geographic_processors import (
     process_raw_number_private_school_data
 )
-from src.county_level.processors.political_processors import (
+from .processors.political_processors import (
     process_raw_election_data
 )
 

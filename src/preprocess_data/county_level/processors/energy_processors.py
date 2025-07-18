@@ -1,6 +1,6 @@
 import geopandas as gpd
 import pandas as pd
-from src.county_level.utils import merge_data
+from ..utils import merge_data
 
 
 # Constants for column naming

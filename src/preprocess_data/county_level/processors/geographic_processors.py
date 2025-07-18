@@ -1,5 +1,5 @@
 import pandas as pd
-from src.county_level.utils import finalize_dataset
+from ..utils import finalize_dataset
 
 
 def process_raw_number_private_school_data(data_file_path: str) -> pd.DataFrame:
@@ -20,7 +20,7 @@ def process_raw_number_private_school_data(data_file_path: str) -> pd.DataFrame:
     
     # Extract county FIPS (last 3 digits) and rename state FIPS
     private_school_data["FIPS County"] = private_school_data["CNTY"].str[-3:]
-    private_school_data = private_school_data.rename(columns={"STFIP": "FIPS State"})
+    private_school_data = private_school_data.rename(columns={"STFIP": "FIPS State"}) # type: ignore
     
     # Count private schools by county
     private_school_counts = (

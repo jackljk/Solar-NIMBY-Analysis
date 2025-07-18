@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Optional, Union, Literal
-from src.county_level.utils import merge_data, extract_fips_from_geography, finalize_dataset
+from ..utils import merge_data, extract_fips_from_geography, finalize_dataset
 
 from src.GLOBAL import FIPS_MAPPING_DF, EIA_FIPS_MAPPING_DF
 
@@ -253,7 +253,7 @@ def process_raw_income_data(data_file_path: str) -> pd.DataFrame:
         if all(keyword in str(col) for keyword in ["Estimate", "Households", "Median"])
     ]
     relevant_columns = ["Geography"] + estimate_columns
-    income_data = raw_data.reindex(columns=relevant_columns).rename(
+    income_data = raw_data.reindex(columns=relevant_columns).rename( # type: ignore
         columns={"Estimate!!Households!!Median income (dollars)": "Median Income"}
     )
     

@@ -2,7 +2,7 @@ import pandas as pd
 from typing import Optional, Union, Literal
 import os
 
-from src.county_level.utils import convert_to_int, extract_fips_from_geography, finalize_dataset
+from ..utils import convert_to_int, extract_fips_from_geography, finalize_dataset
 from src.GLOBAL import FIPS_MAPPING_DF
 
 
