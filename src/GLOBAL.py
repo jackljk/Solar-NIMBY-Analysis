@@ -107,3 +107,51 @@ COUNTY_LEVEL_DATA_FILES = {
     "solar_roof": os.path.join(ENERGY_DATA_DIR, "solar", "solar_roof_raw.csv"),
     "wind": os.path.join(ENERGY_DATA_DIR, "wind"),  # For wind we give the directory
 }
+
+
+##########################################################
+# Constants for file paths (Block Group Level Data)
+##########################################################
+BLOCK_GROUP_LEVEL_DATA_DIR = os.path.join(ROOT_DIR, "data", "social_factors", "block_group_level")
+
+BLOCK_GROUP_LEVEL_DEMOGRAPHIC_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_DATA_DIR, "demographic_data"
+)
+
+BLOCK_GROUP_LEVEL_ECONOMIC_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_DATA_DIR, "economic_data"
+)
+
+BLOCK_GROUP_LEVEL_POLITICAL_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_DATA_DIR, "political_data"
+)
+
+BLOCK_GROUP_LEVEL_BOUNDING_BOXES_DIR = os.path.join(
+    ROOT_DIR, "data", "bounding_boxes", "block_group_bounding_box_raw"
+)
+
+BLOCK_GROUP_LEVEL_DATA_FILES = {
+    # Demographic Data
+    "education": os.path.join(
+        BLOCK_GROUP_LEVEL_DEMOGRAPHIC_DATA_DIR, "education_raw.csv"
+    ),
+    "race": os.path.join(
+        BLOCK_GROUP_LEVEL_DEMOGRAPHIC_DATA_DIR, "race_raw.csv"
+    ),
+    "unemployment": os.path.join(
+        BLOCK_GROUP_LEVEL_DEMOGRAPHIC_DATA_DIR, "unemployment_raw.csv"
+    ),
+    # Economic Data
+    "income": os.path.join(
+        BLOCK_GROUP_LEVEL_ECONOMIC_DATA_DIR, "income_raw.csv"
+    ),
+    # Political Data
+    "election": os.path.join(
+        BLOCK_GROUP_LEVEL_POLITICAL_DATA_DIR, "election_raw.csv"
+    ),
+    # Bounding Box Data
+    "bounding_boxes": BLOCK_GROUP_LEVEL_BOUNDING_BOXES_DIR,
+
+    # Energy Data (shared with county level)
+    "solar": os.path.join(ENERGY_DATA_DIR, "solar", "solar_raw_block_group.csv"),
+}

@@ -1,6 +1,6 @@
 import pandas as pd
 import geopandas as gpd
-from ..GLOBAL import FIPS_MAPPING_DF
+from src.GLOBAL import FIPS_MAPPING_DF
 import os
 
 METER2_TO_KM2 = 1e-6  # Conversion factor from square meters to square kilometers

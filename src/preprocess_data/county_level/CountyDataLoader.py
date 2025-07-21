@@ -101,6 +101,10 @@ class CountyDataLoader:
         # Merge all data
         self.merged_data = self._merge_all_data()
 
+        self.merged_data.drop_duplicates(subset=["State", "County Name"], inplace=True, keep=False)
+        self.merged_data.dropna(subset=["State", "County Name"], inplace=True)
+        self.merged_data.dropna(subset=["STATEFP", "COUNTYFP"], inplace=True)
+
         return self.merged_data
 
     def _merge_all_data(self):
@@ -249,135 +253,195 @@ class CountyDataLoader:
 
     def _load_basic_social_data(self):
         """Load basic social factor data that doesn't require parameter choices."""
-        return {
-            "private_schools": process_raw_number_private_school_data(
-                data_file_path=self.file_paths["private_schools"]
-            ),
-            "income": process_raw_income_data(
-                data_file_path=self.file_paths["income"]
-            ),
-            "unemployment": process_raw_unemployment_data(
-                data_file_path=self.file_paths["unemployment"]
-            ),
-            "solar_roof": process_raw_solar_roof_data(
-                data_file_path=self.file_paths["solar_roof"], 
-                bounding_box=bounding_box
-            ),
-            "gdp": process_raw_GDP_data(
-                data_file_path=self.file_paths["gdp"], 
-                population_data_file_path=self.file_paths["population_data"],
-                bounding_box=bounding_box
-            )
+        data_to_load = {
+            "private_schools": process_raw_number_private_school_data,
+            "income": process_raw_income_data,
+            "unemployment": process_raw_unemployment_data,
+            "solar_roof": (process_raw_solar_roof_data, {"bounding_box": bounding_box}),
+            "gdp": (process_raw_GDP_data, {"population_data_file_path": self.file_paths["population_data"], "bounding_box": bounding_box}),
         }
+        dict_to_return = {}
+        for key, func in data_to_load.items():
+            try:
+                if isinstance(func, tuple):
+                    # If the function is a tuple, it contains the function and its kwargs
+                    func, kwargs = func
+                    dict_to_return[key] = func(data_file_path=self.file_paths[key], **kwargs)
+                else:
+                    dict_to_return[key] = func(data_file_path=self.file_paths[key])
+
+                print(f"✓ Loaded {key} data")
+            except Exception as e:
+                print(f"Warning: Could not load {key} data: {e}")
+                dict_to_return[key] = None
+
+        return dict_to_return
 
     def _load_race_data(self):
         """Load race data based on the specified race type."""
-        if self.race_type == "decennial":
-            return process_raw_race_data(
-                data_dir_path=self.file_paths["race"], 
-                race_type="decennial"
-            )
-        elif self.race_type == "ACS":
-            return process_raw_race_data(
-                data_dir_path=self.file_paths["race"], 
-                race_type="ACS"
-            )
-        else:
-            raise ValueError(f"Invalid race type: {self.race_type}")
+        try:
+            if self.race_type == "decennial":
+                processed_data = process_raw_race_data(
+                    data_dir_path=self.file_paths["race"], 
+                    race_type="decennial"
+                )
+                print("✓ Loaded decennial race data")
+                return processed_data
+            elif self.race_type == "ACS":
+                processed_data = process_raw_race_data(
+                    data_dir_path=self.file_paths["race"], 
+                    race_type="ACS"
+                )
+                print("✓ Loaded ACS race data")
+                return processed_data
+            else:
+                raise ValueError(f"Invalid race type: {self.race_type}")
+        except Exception as e:
+            print(f"Warning: Could not load race data: {e}")
 
     def _load_election_data(self):
         """Load election data based on the specified election type."""
-        if self.election_type == "democrat":
-            return process_raw_election_data(
-                data_file_path=self.file_paths["election"], 
-                party="democrat"
-            )
-        elif self.election_type == "republican":
-            return process_raw_election_data(
-                data_file_path=self.file_paths["election"], 
-                party="republican"
-            )
-        elif self.election_type == "other":
-            return process_raw_election_data(
-                data_file_path=self.file_paths["election"], 
-                party="other"
-            )
-        elif self.election_type == "green":
-            return process_raw_election_data(
-                data_file_path=self.file_paths["election"], 
-                party="green"
-            )
-        elif self.election_type == "libertarian":
-            return process_raw_election_data(
-                data_file_path=self.file_paths["election"], 
-                party="libertarian"
-            )
-        elif self.election_type == "all":
-            return process_raw_election_data(
-                data_file_path=self.file_paths["election"], 
-                party="all"
-            )
-        else:
-            raise ValueError(f"Invalid election type: {self.election_type}")
+        try:
+            if self.election_type == "democrat":
+                processed_data = process_raw_election_data(
+                    data_file_path=self.file_paths["election"], 
+                    party="democrat"
+                )
+                print("✓ Loaded Democrat election data")
+                return processed_data
+            elif self.election_type == "republican":
+                processed_data = process_raw_election_data(
+                    data_file_path=self.file_paths["election"], 
+                    party="republican"
+                )
+                print("✓ Loaded Republican election data")
+                return processed_data
+            elif self.election_type == "other":
+                processed_data = process_raw_election_data(
+                    data_file_path=self.file_paths["election"], 
+                    party="other"
+                )
+                print("✓ Loaded Other election data")
+                return processed_data
+            elif self.election_type == "green":
+                processed_data = process_raw_election_data(
+                    data_file_path=self.file_paths["election"], 
+                    party="green"
+                )
+                print("✓ Loaded Green election data")
+                return processed_data
+            elif self.election_type == "libertarian":
+                processed_data = process_raw_election_data(
+                    data_file_path=self.file_paths["election"], 
+                    party="libertarian"
+                )
+                print("✓ Loaded Libertarian election data")
+                return processed_data
+            elif self.election_type == "all":
+                processed_data = process_raw_election_data(
+                    data_file_path=self.file_paths["election"], 
+                    party="all"
+                )
+                print("✓ Loaded all election data")
+                return processed_data
+            else:
+                raise ValueError(f"Invalid election type: {self.election_type}")
+        except Exception as e:
+            print(f"Warning: Could not load election data: {e}")
+            return None
 
     def _load_education_data(self):
         """Load education data based on the specified education type."""
-        if self.education_type == "18-24":
-            return process_raw_education_data(
-                data_file_path=self.file_paths["education"], 
-                age_range="18-24"
-            )
-        elif self.education_type == "25+":
-            return process_raw_education_data(
-                data_file_path=self.file_paths["education"], 
-                age_range="25+"
-            )
-        elif self.education_type == "all":
-            return {
-                "18-24": process_raw_education_data(
+        try:
+            if self.education_type == "18-24":
+                processed_data = process_raw_education_data(
                     data_file_path=self.file_paths["education"], 
                     age_range="18-24"
-                ),
-                "25+": process_raw_education_data(
+                )
+                print("✓ Loaded 18-24 education data")
+                return processed_data
+            elif self.education_type == "25+":
+                processed_data = process_raw_education_data(
                     data_file_path=self.file_paths["education"], 
                     age_range="25+"
-                ),
-            }
-        else:
-            raise ValueError(f"Invalid education type: {self.education_type}")
+                )
+                print("✓ Loaded 25+ education data")
+                return processed_data
+            elif self.education_type == "all":
+                processed_data = {
+                    "18-24": process_raw_education_data(
+                        data_file_path=self.file_paths["education"], 
+                        age_range="18-24"
+                    ),
+                    "25+": process_raw_education_data(
+                        data_file_path=self.file_paths["education"], 
+                        age_range="25+"
+                    )
+                }
+                print("✓ Loaded 18-24 and 25+ education data")
+                return processed_data
+            else:
+                raise ValueError(f"Invalid education type: {self.education_type}")
+        except Exception as e:
+            print(f"Warning: Could not load education data: {e}")
+            return None
 
     def _load_electric_price_data(self):
         """Load electric data based on the specified electric dataset and customer class."""
-        if self.electric_dataset == "NREL":
-            return process_raw_NREL_electric_price_data(
-                data_file_path=self.file_paths["electric_price_NREL"]
-            )
-        elif self.electric_dataset == "EIA":
-            if self.electric_customer_class == "both":
-                return {
-                    "residential": process_raw_eia_electric_price_data(
+        try:
+            if self.electric_dataset == "NREL":
+                processed_data = process_raw_NREL_electric_price_data(
+                    data_file_path=self.file_paths["electric_price_NREL"]
+                )
+                print("✓ Loaded NREL electric price data")
+                return processed_data
+            elif self.electric_dataset == "EIA":
+                if self.electric_customer_class == "both":
+                    processed_data = {
+                        "residential": process_raw_eia_electric_price_data(
+                            data_file_path=self.file_paths["electric_price_EIA"], 
+                            customer_class="residential"
+                        ),
+                        "commercial": process_raw_eia_electric_price_data(
+                            data_file_path=self.file_paths["electric_price_EIA"], 
+                            customer_class="commercial"
+                        ),
+                    }
+                    print("✓ Loaded EIA electric price data for both residential and commercial")
+                    return processed_data
+                elif self.electric_customer_class == "residential":
+                    processed_data = process_raw_eia_electric_price_data(
                         data_file_path=self.file_paths["electric_price_EIA"], 
                         customer_class="residential"
-                    ),
-                    "commercial": process_raw_eia_electric_price_data(
+                    )
+                    print("✓ Loaded EIA electric price data for residential")
+                    return processed_data
+                elif self.electric_customer_class == "commercial":
+                    processed_data = process_raw_eia_electric_price_data(
                         data_file_path=self.file_paths["electric_price_EIA"], 
                         customer_class="commercial"
-                    ),
-                }
+                    )
+                    print("✓ Loaded EIA electric price data for commercial")
+                    return processed_data
+                else:
+                    return process_raw_eia_electric_price_data(
+                        data_file_path=self.file_paths["electric_price_EIA"], 
+                        customer_class=self.electric_customer_class  # type: ignore
+                    )
             else:
-                return process_raw_eia_electric_price_data(
-                    data_file_path=self.file_paths["electric_price_EIA"], 
-                    customer_class=self.electric_customer_class  # type: ignore
-                )
-        else:
-            raise ValueError(f"Invalid electric dataset: {self.electric_dataset}")
+                raise ValueError(f"Invalid electric dataset: {self.electric_dataset}")
+        except Exception as e:
+            print(f"Warning: Could not load electric price data: {e}")
+            return None
 
     def _load_energy_data(self):
-        """Load energy-related data (wind, GDP, solar)."""
+        """Load energy-related data (wind, solar)."""
         wind = process_raw_wind_data(
             data_file_path=self.file_paths["wind"], 
             bounding_box=bounding_box
         )
+        print("✓ Loaded wind data")
         solar = self._solar_project_data()
+        print("✓ Loaded solar data")
 
         return {"wind": wind, "solar": solar}
