@@ -341,6 +341,176 @@ class BlockGroupDataLoader:
 
         return datasets.get(dataset_name)
 
+    def save_to_csv(self, save_type: Literal["individual", "merged", "both"] = "both", 
+                    output_dir: str = "data_processed/block_group_level"):
+        """
+        Save processed block group data to CSV files in the data_processed directory.
+        
+        Args:
+            save_type (str): What to save - "individual", "merged", or "both"
+                - "individual": Save each dataset separately
+                - "merged": Save only the merged dataset
+                - "both": Save both individual and merged datasets
+            output_dir (str): Output directory relative to project root (default: "data_processed/block_group_level")
+        """
+        # Ensure that the data has been loaded already, i.e self.load_data() has been called
+        if self.merged_data is None:
+            raise ValueError("Data has not been loaded yet. Please call load_data() first.")
+        
+        import os
+        from src.GLOBAL import ROOT_DIR
+        
+        # Create full output path
+        full_output_dir = os.path.join(ROOT_DIR, output_dir)
+        
+        # Create directory structure
+        os.makedirs(full_output_dir, exist_ok=True)
+        
+        if save_type in ["individual", "both"]:
+            self._save_individual_datasets(full_output_dir)
+        
+        if save_type in ["merged", "both"]:
+            self._save_merged_dataset(full_output_dir)
+        
+        print(f"✓ Block group data saved to {full_output_dir}")
+    
+    def _save_individual_datasets(self, output_dir: str):
+        """Save individual block group datasets to separate CSV files."""
+        import os
+        
+        # Create subdirectories for different data types
+        subdirs = {
+            "demographic": ["race", "education", "unemployment"],
+            "economic": ["income"],
+            "energy": ["solar"],
+            "political": ["election"],
+            "geographic": ["bounding_box"]
+        }
+        
+        for subdir in subdirs.keys():
+            os.makedirs(os.path.join(output_dir, subdir), exist_ok=True)
+        
+        # Map datasets to their subdirectories and filenames
+        dataset_mapping = {
+            # Demographic data
+            "race_data": ("demographic", "race_processed.csv"),
+            "education_data": ("demographic", "education_processed.csv"), 
+            "unemployment_data": ("demographic", "unemployment_processed.csv"),
+            
+            # Economic data
+            "income_data": ("economic", "income_processed.csv"),
+            
+            # Energy data
+            "solar_data": ("energy", "solar_processed.csv"),
+            
+            # Political data
+            "election_data": ("political", "election_processed.csv"),
+            
+            # Geographic data
+            "bounding_box": ("geographic", "bounding_box_processed.csv")
+        }
+        
+        saved_count = 0
+        
+        for attr_name, (subdir, filename) in dataset_mapping.items():
+            dataset = getattr(self, attr_name, None)
+            
+            if dataset is not None:
+                filepath = os.path.join(output_dir, subdir, filename)
+                
+                # Handle different data types (DataFrame, dict, etc.)
+                if isinstance(dataset, pd.DataFrame):
+                    dataset.to_csv(filepath, index=False)
+                    saved_count += 1
+                    print(f"  ✓ Saved {attr_name} to {subdir}/{filename}")
+                    
+                elif isinstance(dataset, dict):
+                    # Handle dict datasets (if any block group data is stored as dict)
+                    for key, df in dataset.items():
+                        if df is not None and isinstance(df, pd.DataFrame):
+                            # Create filename with key suffix
+                            base_name = filename.replace('.csv', f'_{key}.csv')
+                            dict_filepath = os.path.join(output_dir, subdir, base_name)
+                            df.to_csv(dict_filepath, index=False)
+                            saved_count += 1
+                            print(f"  ✓ Saved {attr_name}[{key}] to {subdir}/{base_name}")
+                else:
+                    print(f"  ⚠ Skipped {attr_name} (unsupported type: {type(dataset)})")
+            else:
+                print(f"  - Skipped {attr_name} (not loaded)")
+        
+        print(f"  📁 Saved {saved_count} individual block group datasets")
+    
+    def _save_merged_dataset(self, output_dir: str):
+        """Save the merged block group dataset to a CSV file."""
+        import os
+        
+        # Create merged subdirectory
+        merged_dir = os.path.join(output_dir, "merged")
+        os.makedirs(merged_dir, exist_ok=True)
+        
+        if self.merged_data is not None:
+            # Create filename for block group merged data
+            filename = "block_group_merged_data.csv"
+            filepath = os.path.join(merged_dir, filename)
+            
+            self.merged_data.to_csv(filepath, index=False)
+            print(f"  ✓ Saved merged block group dataset to merged/{filename}")
+            print(f"  📊 Dataset shape: {self.merged_data.shape}")
+        else:
+            print("  ⚠ No merged data to save (run load_data() first)")
+    
+    def get_save_summary(self):
+        """
+        Get a summary of what block group data is available for saving.
+        
+        Returns:
+            dict: Summary of datasets available for saving
+        """
+        datasets = {
+            "race_data": self.race_data,
+            "education_data": self.education_data,
+            "unemployment_data": self.unemployment_data,
+            "income_data": self.income_data,
+            "election_data": self.election_data,
+            "solar_data": self.solar_data,
+            "bounding_box": self.bounding_box,
+            "merged_data": self.merged_data
+        }
+        
+        summary = {
+            "available_datasets": {},
+            "total_datasets": 0,
+            "total_dataframes": 0,
+            "data_type": "block_group_level"
+        }
+        
+        for name, data in datasets.items():
+            if data is not None:
+                summary["total_datasets"] += 1
+                
+                if isinstance(data, pd.DataFrame):
+                    summary["available_datasets"][name] = {
+                        "type": "DataFrame",
+                        "shape": data.shape
+                    }
+                    summary["total_dataframes"] += 1
+                elif isinstance(data, dict):
+                    df_count = sum(1 for v in data.values() if isinstance(v, pd.DataFrame))
+                    summary["available_datasets"][name] = {
+                        "type": "dict",
+                        "sub_dataframes": df_count,
+                        "keys": list(data.keys())
+                    }
+                    summary["total_dataframes"] += df_count
+                else:
+                    summary["available_datasets"][name] = {
+                        "type": str(type(data)),
+                        "note": "May not be saveable as CSV"
+                    }
+        
+        return summary
+
 # Example usage:
 """
 # Basic usage with default settings
@@ -351,17 +521,29 @@ merged_data = loader.load_data()
 loader = BlockGroupDataLoader(data_dir="/path/to/custom/block_group_data")
 merged_data = loader.load_data()
 
-# With solar data enabled
-loader = BlockGroupDataLoader(solar_type="enabled")
-merged_data = loader.load_data()
+# Save processed data to CSV files
+loader.save_to_csv()  # Save both individual and merged datasets
+loader.save_to_csv(save_type="merged")  # Save only merged dataset
+loader.save_to_csv(save_type="individual")  # Save only individual datasets
+loader.save_to_csv(output_dir="custom_output/block_group")  # Custom output directory
 
 # Get summary of loaded data
 summary = loader.get_summary()
 print(summary)
 
+# Get summary of data available for saving
+save_summary = loader.get_save_summary()
+print(save_summary)
+
 # Access individual datasets
 race_data = loader.race_data
 education_data = loader.education_data
 income_data = loader.income_data
-# etc.
+solar_data = loader.solar_data
+election_data = loader.election_data
+bounding_box = loader.bounding_box
+
+# Get specific dataset by name
+race_data = loader.get_dataset("race")
+solar_data = loader.get_dataset("solar")
 """

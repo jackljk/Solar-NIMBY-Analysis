@@ -321,7 +321,8 @@ def process_raw_unemployment_data(data_file_path: str) -> pd.DataFrame:
         pd.DataFrame: Processed unemployment data with unemployment rates by county.
     """
     # Load data and set first row as header
-    data = pd.read_csv(data_file_path)
+    # Use low_memory=False to avoid DtypeWarning for mixed-type columns
+    data = pd.read_csv(data_file_path, low_memory=False)
     data.columns = data.iloc[0]
     data = data[1:]
     

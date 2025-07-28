@@ -28,6 +28,8 @@ def process_raw_county_bounding_box(filepath: str) -> pd.DataFrame:
     ).drop(columns=["FIPS State", "FIPS County"])
     
     # Use the geometry column to calculate the bounding box using epsg 5070
+    # Create explicit copy to avoid SettingWithCopyWarning
+    raw_county_bounding_box = raw_county_bounding_box.copy()
     raw_county_bounding_box['area km2'] = raw_county_bounding_box['geometry'].to_crs(epsg=5070).apply(lambda geom: geom.area * METER2_TO_KM2)   
     raw_county_bounding_box['area mi2'] = raw_county_bounding_box['geometry'].to_crs(epsg=5070).apply(lambda geom: geom.area * METER2_TO_MI2)
     

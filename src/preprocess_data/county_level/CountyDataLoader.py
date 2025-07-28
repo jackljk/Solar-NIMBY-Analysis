@@ -18,7 +18,8 @@ from .processors.demographic_processors import (
     process_raw_unemployment_data
 )
 from .processors.geographic_processors import (
-    process_raw_number_private_school_data
+    process_raw_number_private_school_data,
+    process_raw_rural_urban_data
 )
 from .processors.political_processors import (
     process_raw_election_data
@@ -66,6 +67,7 @@ class CountyDataLoader:
         self.education_data = None
         self.electric_data = None
         self.merged_data = None
+        self.rural_urban_data = None
 
         # get all the file paths for the datasets
         from src.GLOBAL import COUNTY_LEVEL_DATA_FILES
@@ -91,6 +93,7 @@ class CountyDataLoader:
         self.unemployment_data = basic_social_data["unemployment"]
         self.solar_roof_data = basic_social_data["solar_roof"]
         self.gdp_data = basic_social_data["gdp"]
+        self.rural_urban_data = basic_social_data["rural_urban"]
 
         # Load parametric data
         self.race_data = self._load_race_data()
@@ -159,6 +162,10 @@ class CountyDataLoader:
             )
         if self.race_data is not None:
             merged = merged.merge(self.race_data, on=["State", "County Name"], how="outer")
+            
+        # Merge rural-urban data
+        if self.rural_urban_data is not None:
+            merged = merged.merge(self.rural_urban_data, on=["State", "County Name"], how="outer")
 
         # Merge election data (handle dict case)
         if self.election_data is not None:
@@ -259,6 +266,7 @@ class CountyDataLoader:
             "unemployment": process_raw_unemployment_data,
             "solar_roof": (process_raw_solar_roof_data, {"bounding_box": bounding_box}),
             "gdp": (process_raw_GDP_data, {"population_data_file_path": self.file_paths["population_data"], "bounding_box": bounding_box}),
+            "rural_urban": process_raw_rural_urban_data
         }
         dict_to_return = {}
         for key, func in data_to_load.items():
@@ -445,3 +453,193 @@ class CountyDataLoader:
         print("✓ Loaded solar data")
 
         return {"wind": wind, "solar": solar}
+    
+    def save_to_csv(self, save_type: Literal["individual", "merged", "both"] = "both", 
+                    output_dir: str = "data_processed/county_level"):
+        """
+        Save processed data to CSV files in the data_processed directory.
+        
+        Args:
+            save_type (str): What to save - "individual", "merged", or "both"
+                - "individual": Save each dataset separately
+                - "merged": Save only the merged dataset
+                - "both": Save both individual and merged datasets
+            output_dir (str): Output directory relative to project root (default: "data_processed/county_level")
+        """
+        # Ensure that the data has been loaded already, i.e self.load_data() has been called
+        if self.merged_data is None:
+            raise ValueError("Data has not been loaded yet. Please call load_data() first.")
+        
+        import os
+        from src.GLOBAL import ROOT_DIR
+        
+        # Create full output path
+        full_output_dir = os.path.join(ROOT_DIR, output_dir)
+        
+        # Create directory structure
+        os.makedirs(full_output_dir, exist_ok=True)
+        
+        if save_type in ["individual", "both"]:
+            self._save_individual_datasets(full_output_dir)
+        
+        if save_type in ["merged", "both"]:
+            self._save_merged_dataset(full_output_dir)
+        
+        print(f"✓ Data saved to {full_output_dir}")
+    
+    def _save_individual_datasets(self, output_dir: str):
+        """Save individual datasets to separate CSV files."""
+        import os
+        
+        # Create subdirectories for different data types
+        subdirs = {
+            "demographic": ["race", "education", "unemployment"],
+            "economic": ["income", "electric", "gdp"],
+            "energy": ["wind", "solar", "solar_roof"],
+            "geographic": ["private_schools", "rural_urban"],
+            "political": ["election"]
+        }
+        
+        for subdir in subdirs.keys():
+            os.makedirs(os.path.join(output_dir, subdir), exist_ok=True)
+        
+        # Map datasets to their subdirectories and filenames
+        dataset_mapping = {
+            # Demographic data
+            "race_data": ("demographic", "race_processed.csv"),
+            "education_data": ("demographic", "education_processed.csv"), 
+            "unemployment_data": ("demographic", "unemployment_processed.csv"),
+            
+            # Economic data
+            "income_data": ("economic", "income_processed.csv"),
+            "electric_data": ("economic", "electric_price_processed.csv"),
+            "gdp_data": ("economic", "gdp_processed.csv"),
+            
+            # Energy data
+            "wind_data": ("energy", "wind_processed.csv"),
+            "solar_data": ("energy", "solar_processed.csv"),
+            "solar_roof_data": ("energy", "solar_roof_processed.csv"),
+            
+            # Geographic data
+            "private_schools_data": ("geographic", "private_schools_processed.csv"),
+            "rural_urban_data": ("geographic", "rural_urban_processed.csv"),
+            
+            # Political data
+            "election_data": ("political", "election_processed.csv")
+        }
+        
+        saved_count = 0
+        
+        for attr_name, (subdir, filename) in dataset_mapping.items():
+            dataset = getattr(self, attr_name, None)
+            
+            if dataset is not None:
+                filepath = os.path.join(output_dir, subdir, filename)
+                
+                # Handle different data types (DataFrame, dict, etc.)
+                if isinstance(dataset, pd.DataFrame):
+                    dataset.to_csv(filepath, index=False)
+                    saved_count += 1
+                    print(f"  ✓ Saved {attr_name} to {subdir}/{filename}")
+                    
+                elif isinstance(dataset, dict):
+                    # Handle dict datasets (like education with multiple age ranges)
+                    for key, df in dataset.items():
+                        if df is not None and isinstance(df, pd.DataFrame):
+                            # Create filename with key suffix
+                            base_name = filename.replace('.csv', f'_{key}.csv')
+                            dict_filepath = os.path.join(output_dir, subdir, base_name)
+                            df.to_csv(dict_filepath, index=False)
+                            saved_count += 1
+                            print(f"  ✓ Saved {attr_name}[{key}] to {subdir}/{base_name}")
+                else:
+                    print(f"  ⚠ Skipped {attr_name} (unsupported type: {type(dataset)})")
+            else:
+                print(f"  - Skipped {attr_name} (not loaded)")
+        
+        print(f"  📁 Saved {saved_count} individual datasets")
+    
+    def _save_merged_dataset(self, output_dir: str):
+        """Save the merged dataset to a CSV file."""
+        import os
+        
+        # Create merged subdirectory
+        merged_dir = os.path.join(output_dir, "merged")
+        os.makedirs(merged_dir, exist_ok=True)
+        
+        if self.merged_data is not None:
+            # Create filename with configuration info
+            config_suffix = f"{self.race_type}_{self.election_type}_{self.education_type}_{self.solar_type}_{self.electric_dataset}"
+            if self.electric_dataset == "EIA":
+                config_suffix += f"_{self.electric_customer_class}"
+            
+            filename = f"county_merged_data_{config_suffix}.csv"
+            filepath = os.path.join(merged_dir, filename)
+            
+            self.merged_data.to_csv(filepath, index=False)
+            print(f"  ✓ Saved merged dataset to merged/{filename}")
+            print(f"  📊 Dataset shape: {self.merged_data.shape}")
+        else:
+            print("  ⚠ No merged data to save (run load_data() first)")
+    
+    def get_save_summary(self):
+        """
+        Get a summary of what data is available for saving.
+        
+        Returns:
+            dict: Summary of datasets available for saving
+        """
+        datasets = {
+            "race_data": self.race_data,
+            "education_data": self.education_data,
+            "unemployment_data": self.unemployment_data,
+            "income_data": self.income_data,
+            "electric_data": self.electric_data,
+            "gdp_data": self.gdp_data,
+            "wind_data": self.wind_data,
+            "solar_data": self.solar_data,
+            "solar_roof_data": self.solar_roof_data,
+            "private_schools_data": self.private_schools_data,
+            "election_data": self.election_data,
+            "merged_data": self.merged_data
+        }
+        
+        summary = {
+            "available_datasets": {},
+            "total_datasets": 0,
+            "total_dataframes": 0,
+            "configuration": {
+                "race_type": self.race_type,
+                "election_type": self.election_type,
+                "education_type": self.education_type,
+                "solar_type": self.solar_type,
+                "electric_dataset": self.electric_dataset,
+                "electric_customer_class": self.electric_customer_class
+            }
+        }
+        
+        for name, data in datasets.items():
+            if data is not None:
+                summary["total_datasets"] += 1
+                
+                if isinstance(data, pd.DataFrame):
+                    summary["available_datasets"][name] = {
+                        "type": "DataFrame",
+                        "shape": data.shape
+                    }
+                    summary["total_dataframes"] += 1
+                elif isinstance(data, dict):
+                    df_count = sum(1 for v in data.values() if isinstance(v, pd.DataFrame))
+                    summary["available_datasets"][name] = {
+                        "type": "dict",
+                        "sub_dataframes": df_count,
+                        "keys": list(data.keys())
+                    }
+                    summary["total_dataframes"] += df_count
+                else:
+                    summary["available_datasets"][name] = {
+                        "type": str(type(data)),
+                        "note": "May not be saveable as CSV"
+                    }
+        
+        return summary

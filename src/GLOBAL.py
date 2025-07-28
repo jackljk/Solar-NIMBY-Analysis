@@ -60,7 +60,7 @@ COUNTY_LEVEL_POLITICAL_DATA_DIR = os.path.join(
 )
 
 COUNTY_LEVEL_BOUNDING_BOXES_DIR = os.path.join(
-    COUNTY_LEVEL_DATA_DIR, "bounding_boxes_raw"
+     ROOT_DIR, "data", "bounding_boxes", "county_bounding_box_raw"
 )
 
 COUNTY_LEVEL_DATA_FILES = {

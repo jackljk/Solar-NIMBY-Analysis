@@ -6,6 +6,9 @@ data/**/*
 !data/*/*/
 !data/*/*/.gitkeep
 
+# don't track the 'data_processed' directory
+data_processed/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
