@@ -1,18 +1,17 @@
-# Data directory - track directory structure but ignore contents
-data/**/*
+# ignore all files in data directory and data_processed directory but keep the directory folder and ignore everything else
+data/*
+data_processed/*
 !data/.gitkeep
-!data/*/
-!data/*/.gitkeep
-!data/*/*/
-!data/*/*/.gitkeep
+!data_processed/.gitkeep
 
-# don't track the 'data_processed' directory
-data_processed/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# .zip files
+*.zip
 
 # C extensions
 *.so
