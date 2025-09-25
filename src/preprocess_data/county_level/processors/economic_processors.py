@@ -261,6 +261,9 @@ def process_raw_income_data(data_file_path: str) -> pd.DataFrame:
     # Extract FIPS codes from Geography column
     income_data = extract_fips_from_geography(income_data)
     
+    # Ensure Median Income is numeric, coercing errors to NaN
+    income_data["Median Income"] = pd.to_numeric(income_data["Median Income"], errors='coerce')
+    
     # Merge with FIPS mapping and finalize
     income_data = finalize_dataset(income_data).drop_duplicates()
 

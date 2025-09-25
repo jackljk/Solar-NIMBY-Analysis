@@ -45,8 +45,6 @@ def process_raw_income_data(data_file_path: str) -> pd.DataFrame:
         "County", 
         "Tract",
         "Block Group",
-        "State Name",
-        "County Name",
         "Median Household Income"
     ]
     

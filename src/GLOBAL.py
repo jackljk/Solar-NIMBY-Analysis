@@ -33,13 +33,13 @@ EIA_FIPS_MAPPING_DF = pd.read_csv(
 
 
 ##########################################################
-# Constants for energy data file paths (Global Data)
+# Constants for raw energy data file paths (Global Data)
 ##########################################################
 
 ENERGY_DATA_DIR = os.path.join(ROOT_DIR, "data", "electric_data")
 
 ##########################################################
-# Constants for file paths (County Level Data)
+# Constants for raw file paths (County Level Data)
 ##########################################################
 COUNTY_LEVEL_DATA_DIR = os.path.join(ROOT_DIR, "data", "social_factors", "county_level")
 
@@ -110,7 +110,7 @@ COUNTY_LEVEL_DATA_FILES = {
 
 
 ##########################################################
-# Constants for file paths (Block Group Level Data)
+# Constants for raw file paths (Block Group Level Data)
 ##########################################################
 BLOCK_GROUP_LEVEL_DATA_DIR = os.path.join(ROOT_DIR, "data", "social_factors", "block_group_level")
 
@@ -154,4 +154,138 @@ BLOCK_GROUP_LEVEL_DATA_FILES = {
 
     # Energy Data (shared with county level)
     "solar": os.path.join(ENERGY_DATA_DIR, "solar", "solar_raw_block_group.csv"),
+}
+
+
+##########################################################
+# Constants for processed data file paths (County Level)
+##########################################################
+PROCESSED_COUNTY_LEVEL_DATA_DIR = os.path.join(
+    ROOT_DIR, "data_processed", "county_level"
+)
+
+PROCESSED_COUNTY_LEVEL_DEMOGRAPHIC_DATA_DIR = os.path.join(
+    PROCESSED_COUNTY_LEVEL_DATA_DIR, "demographic"
+)
+
+PROCESSED_COUNTY_LEVEL_ECONOMIC_DATA_DIR = os.path.join(
+    PROCESSED_COUNTY_LEVEL_DATA_DIR, "economic"
+)
+
+PROCESSED_COUNTY_LEVEL_POLITICAL_DATA_DIR = os.path.join(
+    PROCESSED_COUNTY_LEVEL_DATA_DIR, "political"
+)
+
+PROCESSED_COUNTY_LEVEL_GEOGRAPHIC_DATA_DIR = os.path.join(
+    PROCESSED_COUNTY_LEVEL_DATA_DIR, "geographic"
+)
+
+PROCESSED_COUNTY_LEVEL_ENERGY_DATA_DIR = os.path.join(
+    PROCESSED_COUNTY_LEVEL_DATA_DIR, "energy"
+)
+
+PROCESSED_COUNTY_LEVEL_MERGED_DATA_DIR = os.path.join(
+    PROCESSED_COUNTY_LEVEL_DATA_DIR, "merged"
+)
+
+PROCESSED_COUNTY_LEVEL_DATA_FILES = {
+    # Demographic Data
+    "education_18-24": os.path.join(
+        PROCESSED_COUNTY_LEVEL_DEMOGRAPHIC_DATA_DIR, "education_processed_18-24.csv"
+    ),
+    "education_25+": os.path.join(
+        PROCESSED_COUNTY_LEVEL_DEMOGRAPHIC_DATA_DIR, "education_processed_25+.csv"
+    ),
+    "unemployment": os.path.join(
+        PROCESSED_COUNTY_LEVEL_DEMOGRAPHIC_DATA_DIR, "unemployment_processed.csv"
+    ),
+    "race": os.path.join(
+        PROCESSED_COUNTY_LEVEL_DEMOGRAPHIC_DATA_DIR, "race_processed.csv"
+    ),
+    # Economic Data
+    "electric_price": os.path.join(
+        PROCESSED_COUNTY_LEVEL_ECONOMIC_DATA_DIR, "electric_price_processed.csv"
+    ),
+    "income": os.path.join(
+        PROCESSED_COUNTY_LEVEL_ECONOMIC_DATA_DIR, "income_processed.csv"
+    ),
+    "gdp": os.path.join(
+        PROCESSED_COUNTY_LEVEL_ECONOMIC_DATA_DIR, "gdp_processed.csv"
+    ),
+    # Geographic Data
+    "private_schools": os.path.join(
+        PROCESSED_COUNTY_LEVEL_GEOGRAPHIC_DATA_DIR, "private_schools_processed.csv"
+    ),
+    "rural_urban": os.path.join(
+        PROCESSED_COUNTY_LEVEL_GEOGRAPHIC_DATA_DIR, "rural_urban_processed.csv"
+    ),
+    # Political Data
+    "election_democrat": os.path.join(
+        PROCESSED_COUNTY_LEVEL_POLITICAL_DATA_DIR, "election_democrat_processed.csv"
+    ),
+    "election_republican": os.path.join(
+        PROCESSED_COUNTY_LEVEL_POLITICAL_DATA_DIR, "election_republican_processed.csv"
+    ),
+}
+
+PROCESSED_COUNTY_LEVEL_MERGED_DATA_FILES = {
+    "merged_decennial_all": os.path.join(
+        PROCESSED_COUNTY_LEVEL_MERGED_DATA_DIR, "county_merged_data_decennial_all_all_all_NREL.csv"
+    )
+}
+
+##########################################################
+# Constants for processed data file paths (Block Group Level)
+##########################################################
+BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR = os.path.join(
+    ROOT_DIR, "data_processed", "block_group_level"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_DEMOGRAPHIC_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR, "demographic"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_ECONOMIC_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR, "economic"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_POLITICAL_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR, "political"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_GEOGRAPHIC_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR, "geographic"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_ENERGY_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR, "energy"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_MERGED_DATA_DIR = os.path.join(
+    BLOCK_GROUP_LEVEL_PROCESSED_DATA_DIR, "merged"
+)
+
+BLOCK_GROUP_LEVEL_PROCESSED_MERGED_DATA_FILES = {
+    "merged_all": os.path.join(
+        BLOCK_GROUP_LEVEL_PROCESSED_MERGED_DATA_DIR, "block_group_merged_data.csv"
+    )
+}
+
+
+###########################################################
+# Constants for processed data file paths (suitability scores)
+###########################################################
+
+SUITABILITY_SCORES_DATA_DIR = os.path.join(ROOT_DIR, "data_processed", "suitability_scores")
+
+SUITABILITY_SCORES_DATA_FILES = {
+    "county_suitability_scores": os.path.join(
+        SUITABILITY_SCORES_DATA_DIR, "county_suitability_scores.csv"
+    ),
+    "block_group_suitability_scores": os.path.join(
+        SUITABILITY_SCORES_DATA_DIR, "block_group_suitability_scores.csv"
+    ),
+    "project_suitability_scores": os.path.join(
+        SUITABILITY_SCORES_DATA_DIR, "project_suitability_scores.csv"
+    ),
 }

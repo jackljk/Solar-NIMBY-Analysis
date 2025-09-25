@@ -1,0 +1,38 @@
+REGRESSION_VARIABLES = {
+    "base": ["X1", "X2", "X3", "X4", "X5", "X7"],
+    "social_traditional": [
+        "dem_vote",
+        "black",
+        "hispanic",
+        "asian",
+        "income000",
+        "HS",
+        "grad",
+    ],
+    "social_expanded": ["GDPpercapita", "unemp_rate", "wind_intens"],
+    "electric": ["comm", "industry", "resi"],
+    "rooftop": ["roof_capacity"],
+}
+
+COVARIATE_ORDER = [
+    "X1",
+    "X2",
+    "X3",
+    "X4",
+    "X5",
+    "X7",
+    "comm",
+    "industry",
+    "resi",
+    "dem_vote",
+    "black",
+    "hispanic",
+    "asian",
+    "income000",
+    "HS",
+    "grad",
+    "GDPpercapita",
+    "unemp_rate",
+    "wind_intens",
+    "Intercept",
+]

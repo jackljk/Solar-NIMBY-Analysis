@@ -100,12 +100,18 @@ def process_raw_solar_data(
         how="inner"
     ).drop(columns=["FIPS State", "FIPS County", "GEOID"])
     
-    # get the per km2 and per mi2 values for all the solar data
-    solar_aggregated = _get_per_area_values(solar_aggregated, "solar_mw_mean")
-    solar_aggregated = _get_per_area_values(solar_aggregated, "solar_mw_sum")
-    solar_aggregated = _get_per_area_values(solar_aggregated, "solar_mw_count")
+    solar_aggregated.rename(columns={
+        "solar_mw_sum": "Solar Capacity Intensity MW",
+        "solar_mw_mean": "Solar Avg Capacity Intensity MW",
+        "solar_mw_count": "Solar Project Intensity Count",
+    }, inplace=True)
     
-    return solar_aggregated
+    # get the per km2 and per mi2 values for all the solar data
+    solar_aggregated = _get_per_area_values(solar_aggregated, "Solar Capacity Intensity MW")
+    solar_aggregated = _get_per_area_values(solar_aggregated, "Solar Avg Capacity Intensity MW")
+    solar_aggregated = _get_per_area_values(solar_aggregated, "Solar Project Intensity Count")
+
+    return solar_aggregated.drop(columns=["State Name", "County Name"], errors="ignore")
     
 def _get_per_area_values(solar_aggregated: pd.DataFrame, 
                          metric: str,

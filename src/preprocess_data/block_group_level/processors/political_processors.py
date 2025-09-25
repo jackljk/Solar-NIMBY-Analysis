@@ -98,8 +98,6 @@ def process_raw_election_data(data_file_path: str, fips_mapping_path: Optional[s
         'County',
         'Tract', 
         'Block Group',
-        'State Name',
-        'County Name',
         'Total Votes',
         'Republican Votes',
         'Democratic Votes',
